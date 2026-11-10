@@ -1,7 +1,7 @@
 {
   "name": "NEET Saathi",
   "short_name": "NEET Saathi",
-  "description": "NEET 2027 ki preparation ka poora saathi: routine, Yakeen timetable, focus mode, tracker, mocks aur AI mentor.",
+  "description": "NEET 2027 ki preparation ka poora saathi: routine, Yakeen timetable, focus mode, tracker, mocks aur AI mentor Hanuman.",
   "lang": "hi-IN",
   "start_url": "./index.html",
   "scope": "./",
@@ -16,6 +16,6 @@
   ],
   "shortcuts": [
     { "name": "Focus session", "url": "./index.html#focus" },
-    { "name": "AI Mentor", "url": "./index.html#mentor" }
+    { "name": "Hanuman Mentor", "url": "./index.html#mentor" }
   ]
 }

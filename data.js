@@ -47,15 +47,28 @@ window.NS_DATA = {
       [12, 'Organisms and Populations'], [12, 'Ecosystem'], [12, 'Biodiversity and Conservation']
     ]
   },
-  // Starter daily routine. Edit in Plan > Daily > Edit.
+  // AIIMS Rishikesh routine. Mon-Sat full study day, Sunday = revision + full mock.
+  // PW Yakeen lectures come from the Yakeen tab, so their time sits inside these blocks.
   routine: [
-    { time: '05:30', title: 'Uthna, fresh hona, paani', subj: '', days: [0, 1, 2, 3, 4, 5, 6] },
-    { time: '06:00', title: 'Biology NCERT padhna', subj: 'B', days: [0, 1, 2, 3, 4, 5, 6] },
-    { time: '09:00', title: 'Lecture ke liye ready, notes copy', subj: '', days: [1, 2, 3, 4, 5, 6] },
-    { time: '14:00', title: 'Physics DPP aur numericals', subj: 'P', days: [0, 1, 2, 3, 4, 5, 6] },
-    { time: '16:30', title: 'Chemistry revision', subj: 'C', days: [0, 1, 2, 3, 4, 5, 6] },
-    { time: '18:30', title: 'Biology MCQ practice', subj: 'B', days: [0, 1, 2, 3, 4, 5, 6] },
-    { time: '21:00', title: 'Backlog clear karna', subj: '', days: [0, 1, 2, 3, 4, 5, 6] },
-    { time: '22:30', title: 'Din ka review aur sona', subj: '', days: [0, 1, 2, 3, 4, 5, 6] }
+    { time: '05:30', title: 'Uthna, paani, 10 min walk ya stretching', subj: '', days: [0, 1, 2, 3, 4, 5, 6] },
+    { time: '06:00', title: 'Biology NCERT line by line + diagrams (2 ghante)', subj: 'B', days: [1, 2, 3, 4, 5, 6] },
+    { time: '08:00', title: 'Nashta aur ready hona', subj: '', days: [0, 1, 2, 3, 4, 5, 6] },
+    { time: '08:30', title: 'Physics: concept + numericals (2 ghante)', subj: 'P', days: [1, 2, 3, 4, 5, 6] },
+    { time: '10:45', title: 'Chemistry: aaj ka topic (Physical, Organic, Inorganic roz badal ke)', subj: 'C', days: [1, 2, 3, 4, 5, 6] },
+    { time: '13:00', title: 'Lunch aur 20 min aaram', subj: '', days: [0, 1, 2, 3, 4, 5, 6] },
+    { time: '14:00', title: 'Aaj ke lecture ke notes revise + DPP', subj: '', days: [1, 2, 3, 4, 5, 6] },
+    { time: '16:00', title: 'Biology MCQ 60 + galtiyon ki list', subj: 'B', days: [1, 2, 3, 4, 5, 6] },
+    { time: '17:30', title: 'Break: walk, khel ya ghar ka kaam', subj: '', days: [1, 2, 3, 4, 5, 6] },
+    { time: '18:30', title: 'Physics PYQ / numericals (chapter wise)', subj: 'P', days: [1, 2, 3, 4, 5, 6] },
+    { time: '20:00', title: 'Dinner', subj: '', days: [0, 1, 2, 3, 4, 5, 6] },
+    { time: '20:45', title: 'Chemistry NCERT + reactions aur formulas revision', subj: 'C', days: [1, 2, 3, 4, 5, 6] },
+    { time: '22:00', title: 'Din ka review, kal ka plan, backlog entry', subj: '', days: [0, 1, 2, 3, 4, 5, 6] },
+    { time: '22:30', title: 'Sona (7 ghante neend zaroori hai)', subj: '', days: [0, 1, 2, 3, 4, 5, 6] },
+    { time: '06:00', title: 'Hafte ka Biology revision (is hafte ke chapters)', subj: 'B', days: [0] },
+    { time: '08:30', title: 'Physics + Chemistry weekly revision aur formula sheet', subj: '', days: [0] },
+    { time: '11:30', title: 'Backlog clear karna', subj: '', days: [0] },
+    { time: '14:00', title: 'Full NEET mock test (200 min, asli exam ke time par)', subj: '', days: [0] },
+    { time: '17:45', title: 'Mock analysis: har galti ka reason likho', subj: '', days: [0] },
+    { time: '20:45', title: 'Agle hafte ka plan + syllabus tracker update', subj: '', days: [0] }
   ]
 };

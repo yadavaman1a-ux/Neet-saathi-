@@ -31,25 +31,33 @@ function defaults() {
   SUBJ.forEach((s) => D.chapters[s].forEach(([cls, name]) => chapters.push({ id: 'c' + (++n), s, cls, name, f: [0, 0, 0, 0, 0, 0] })));
   return {
     v: 1,
-    settings: { name: '', exam: '2027-05-02', lead: 5, notif: false, mcq: 90, key: '', model: 'gemini-flash-latest', theme: 'auto' },
+    settings: { name: '', exam: '2027-05-02', lead: 5, notif: false, mcq: 90, key: '', model: 'gemini-flash-lite-latest', theme: 'auto' },
     routine: D.routine.map((r) => Object.assign({ id: uid() }, r)),
     done: {}, goals: {}, lectures: [], chapters, backlog: [], practice: [], mocks: [],
     focus: { log: [], active: null }, chat: [], notified: {}
   };
 }
+const OLD_ROUTINE = ['Uthna, fresh hona, paani', 'Biology NCERT padhna', 'Lecture ke liye ready, notes copy', 'Physics DPP aur numericals', 'Chemistry revision', 'Biology MCQ practice', 'Backlog clear karna', 'Din ka review aur sona'];
+function migrateRoutine() {
+  if (S.routineV === 2) return;
+  const same = S.routine.length === OLD_ROUTINE.length && S.routine.every((r, i) => r.title === OLD_ROUTINE[i]);
+  if (same) { S.routine = D.routine.map((r) => Object.assign({ id: uid() }, r)); S.routineV = 2; }
+}
 function load() {
-  const d = defaults();
+  const d = defaults(), ds = Object.assign({}, d.settings);
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const o = JSON.parse(raw);
       S = Object.assign(d, o);
-      S.settings = Object.assign(d.settings, o.settings || {});
+      S.settings = Object.assign(ds, o.settings || {});
+      if (S.settings.model === 'gemini-flash-latest') S.settings.model = 'gemini-flash-lite-latest';
       S.focus = Object.assign({ log: [], active: null }, o.focus || {});
+      migrateRoutine();
       return;
     }
   } catch (e) { /* fall through to defaults */ }
-  S = d;
+  S = d; S.routineV = 2;
 }
 let saveT;
 function saveNow() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Phone ki storage full hai, data save nahi hua'); } }
@@ -153,7 +161,7 @@ function vHome() {
   h += '<div class="grid3"><section class="card"><div class="stat"><b>' + pend + '</b><span>backlog pending</span></div></section>' +
     '<section class="card"><div class="stat"><b>' + q + '<small class="muted" style="font-size:13px">/' + tgt + '</small></b><span>MCQ aaj</span></div></section>' +
     '<section class="card"><div class="stat"><b>' + (last ? mockTotal(last) : '--') + '</b><span>last mock /720</span></div></section></div>';
-  h += '<div class="grid2"><button class="btn" data-act="tab" data-v="focus">Focus shuru karo</button><button class="btn ghost" data-act="tab" data-v="mentor">AI Mentor se pucho</button></div>';
+  h += '<div class="grid2"><button class="btn" data-act="tab" data-v="focus">Focus shuru karo</button><button class="btn ghost" data-act="tab" data-v="mentor">Hanuman se pucho</button></div>';
   return h;
 }
 
@@ -162,7 +170,8 @@ function vPlan() {
 }
 function vDaily() {
   const dk = ui.date, it = itemsFor(dk), done = it.filter((i) => isDone(dk, i.id)).length;
-  let h = '<section class="card"><div class="row spread"><button class="icon-btn" data-act="dnav" data-v="-1" aria-label="Pichhla din">&#8249;</button><div style="text-align:center"><b>' + dayLabel(dk) + '</b>' + (dk !== dkey() ? '<div><button class="linkbtn" data-act="dtoday">Aaj pe jao</button></div>' : '<div class="muted small">' + fmtDate(dk) + '</div>') + '</div><button class="icon-btn" data-act="dnav" data-v="1" aria-label="Agla din">&#8250;</button></div>';
+  const offer = S.routineV !== 2 ? '<section class="card"><h3>Naya AIIMS Rishikesh routine</h3><div class="muted small">Tumne purane routine mein badlav kiye the, isliye maine use apne aap nahi badla. Naya lagane se current routine hat jayega.</div><div class="row wrap"><button class="btn sm" data-act="aiimsRoutine">Naya routine lagao</button><button class="btn ghost sm" data-act="routineSkip">Rehne do</button></div></section>' : '';
+  let h = offer + '<section class="card"><div class="row spread"><button class="icon-btn" data-act="dnav" data-v="-1" aria-label="Pichhla din">&#8249;</button><div style="text-align:center"><b>' + dayLabel(dk) + '</b>' + (dk !== dkey() ? '<div><button class="linkbtn" data-act="dtoday">Aaj pe jao</button></div>' : '<div class="muted small">' + fmtDate(dk) + '</div>') + '</div><button class="icon-btn" data-act="dnav" data-v="1" aria-label="Agla din">&#8250;</button></div>';
   h += '<div class="row"><div class="bar grow"><i style="width:' + (it.length ? Math.round(done / it.length * 100) : 0) + '%"></i></div><b>' + done + '/' + it.length + '</b></div></section>';
   h += '<section class="card"><div class="card-h"><h2>Timeline</h2><button class="linkbtn" data-act="editr">' + (ui.editR ? 'Ho gaya' : 'Routine edit') + '</button></div>';
   if (!it.length) h += empty('Is din ke liye kuch nahi', 'Routine edit karke kaam jodo.');
@@ -342,11 +351,11 @@ function md(t) {
 function vMentor() {
   let h = '';
   if (!S.settings.key) {
-    h += '<section class="card"><h3>Gemini API key chahiye</h3><div class="muted">AI Mentor Google Gemini se chalta hai. Free key banao: aistudio.google.com/apikey, phir Settings mein paste karo. Key sirf tumhare phone mein rehti hai.</div><button class="btn" data-act="tab" data-v="settings">Settings kholo</button></section>';
+    h += '<section class="card"><h3>Gemini API key chahiye</h3><div class="muted">Hanuman (AI Mentor) Google Gemini se chalta hai. Free key banao: aistudio.google.com/apikey, phir Settings mein paste karo. Key sirf tumhare phone mein rehti hai.</div><button class="btn" data-act="tab" data-v="settings">Settings kholo</button></section>';
   }
   h += '<div class="chips">' + QUICK.map((q) => '<button class="chip" data-act="quick" data-v="' + esc(q) + '">' + esc(q) + '</button>').join('') + '</div>';
-  h += '<div class="chat">' + (S.chat.length ? S.chat.map((m) => '<div class="msg ' + m.role + '">' + (m.role === 'user' ? esc(m.text).replace(/\n/g, '<br>') : m.role === 'err' ? esc(m.text) : md(m.text)) + '</div>').join('') : '<div class="empty"><b>Saathi tumhara AI mentor hai</b>Study plan, weak topics, doubts ya motivation, kuch bhi pucho. Wo tumhara syllabus, mocks aur backlog dekh kar jawab deta hai.</div>') + (ui.busy ? '<div class="msg model muted">Soch raha hoon...</div>' : '') + '</div>';
-  h += '<form class="chatbar" data-form="chat"><input type="text" name="q" placeholder="Apna sawal likho..." autocomplete="off" ' + (ui.busy ? 'disabled' : '') + '><button class="btn" ' + (ui.busy ? 'disabled' : '') + '>Bhejo</button></form>';
+  h += '<div class="chat">' + (S.chat.length ? S.chat.map((m) => '<div class="msg ' + m.role + '">' + (m.role === 'user' ? esc(m.text).replace(/\n/g, '<br>') : m.role === 'err' ? esc(m.text) : md(m.text)) + '</div>').join('') : '<div class="empty"><b>Hanuman tumhare AI mentor hain</b>Study plan, weak topics, doubts ya motivation, kuch bhi pucho. Wo tumhara syllabus, mocks aur backlog dekh kar jawab dete hain.</div>') + (ui.busy ? '<div class="msg model' + (ui.live ? '' : ' muted') + '" id="live">' + (ui.live ? md(ui.live) : 'Hanuman soch rahe hain...') + '</div>' : '') + '</div>';
+  h += '<form class="chatbar" data-form="chat"><input type="text" name="q" placeholder="Hanuman se sawal pucho..." autocomplete="off" ' + (ui.busy ? 'disabled' : '') + '><button class="btn" ' + (ui.busy ? 'disabled' : '') + '>Bhejo</button></form>';
   if (S.chat.length) h += '<div class="row"><button class="linkbtn" data-act="chatclear">Chat saaf karo</button></div>';
   return h;
 }
@@ -356,9 +365,10 @@ function mentorContext() {
   const acc = SUBJ.map((s) => D.subjects[s].name + ' ' + (st[s].t ? Math.round(st[s].c / st[s].t * 100) + '%' : 'data nahi')).join(', ');
   const weak = weakChapters().slice(0, 6).map((w) => w.name + ' (' + w.n + ')').join(', ') || 'abhi data nahi';
   const lowCh = S.chapters.filter((c) => chPct(c) < 0.34).slice(0, 8).map((c) => c.name).join(', ') || 'koi nahi';
-  return 'Tum "Saathi" ho, ek dosti bhara aur practical NEET UG mentor. Student ka naam: ' + (S.settings.name || 'dost') + '. ' +
+  return 'Tum "Hanuman" ho, NEET UG ke AI mentor. Swabhav: shant, nidar, balwaan aur seva-bhav wale, Bajrangbali jaise. Student ka hausla badhate ho, aalas aur dar door karte ho, par jawab hamesha practical aur padhai par kendrit rakhte ho. Student ko naam ya beta kehkar bulao. Kabhi kabhi ek chhota josh bhara vaakya (jaise "Jai Bajrang Bali, ho jayega!") theek hai, par har jawab mein nahi, aur dharmik pravachan ya lambi kathayein mat sunao. Jawab practical rakho aur chhote: aam taur par 120 shabd se kam, jab tak student detail na maange. Student ka naam: ' + (S.settings.name || 'dost') + '. ' +
     'Hinglish (Roman Hindi + English) mein baat karo, jawab chhote aur clear rakho, zaroorat ho to bullet points. Biology NCERT based, Physics/Chemistry step by step samjhao. Jo pakka nahi pata wo guess mat karo, bolo ki pakka nahi hai. Medical advice mat do. ' +
     'Student ka data (isi se personal salah do):\n' +
+    '- Lakshya: AIIMS Rishikesh MBBS. Pichhle 2 saal General closing AIR lagbhag 685 se 731 raha, yani bahut ooncha score chahiye (NCERT aur accuracy sabse zaroori).\n' +
     '- NEET mein ' + left + ' din baaki.\n' +
     '- Syllabus complete: Physics ' + Math.round(subjPct('P') * 100) + '%, Chemistry ' + Math.round(subjPct('C') * 100) + '%, Biology ' + Math.round(subjPct('B') * 100) + '%.\n' +
     '- Kam progress wale chapters: ' + lowCh + '.\n' +
@@ -368,38 +378,60 @@ function mentorContext() {
     '- Last mocks (/720): ' + (ms.slice(-4).map((m) => mockTotal(m)).join(', ') || 'abhi koi nahi') + '.\n' +
     '- Mocks mein baar baar galti: ' + weak + '.';
 }
-async function askGeminiOnce(model) {
+// Streams the answer so text shows up word by word instead of after a long wait.
+async function askGeminiOnce(model, onText) {
   const key = S.settings.key.trim();
-  let hist = S.chat.filter((m) => m.role === 'user' || m.role === 'model').slice(-14);
+  let hist = S.chat.filter((m) => (m.role === 'user' || m.role === 'model') && m.text).slice(-10);
   while (hist.length && hist[0].role !== 'user') hist.shift();
-  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', {
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':streamGenerateContent?alt=sse', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: mentorContext() }] },
       contents: hist.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
-      generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
+      generationConfig: { temperature: 0.7, maxOutputTokens: 900 }
     })
   });
-  const j = await res.json().catch(() => ({}));
-  if (!res.ok) { const er = new Error((j.error && j.error.message) || ('HTTP ' + res.status)); er.status = res.status; throw er; }
-  const t = ((j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts) || []).map((p) => p.text || '').join('');
-  if (!t) throw new Error(j.promptFeedback && j.promptFeedback.blockReason ? 'Gemini ne jawab block kiya (' + j.promptFeedback.blockReason + ')' : 'Khaali jawab aaya, dobara try karo');
-  return t;
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({}));
+    const er = new Error((j.error && j.error.message) || ('HTTP ' + res.status)); er.status = res.status; throw er;
+  }
+  let full = '', buf = '', block = '';
+  const feed = (chunk, last) => {
+    buf += chunk;
+    const lines = buf.split('\n'); buf = last ? '' : lines.pop();
+    (last ? lines.concat(buf ? [buf] : []) : lines).forEach((ln) => {
+      ln = ln.trim(); if (ln.indexOf('data:') !== 0) return;
+      let j; try { j = JSON.parse(ln.slice(5)); } catch (e) { return; }
+      if (j.promptFeedback && j.promptFeedback.blockReason) block = j.promptFeedback.blockReason;
+      const parts = (j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts) || [];
+      const t = parts.map((p) => p.text || '').join('');
+      if (t) { full += t; if (onText) onText(full); }
+    });
+  };
+  if (res.body && res.body.getReader) {
+    const rd = res.body.getReader(), dec = new TextDecoder();
+    for (;;) { const r = await rd.read(); if (r.done) break; feed(dec.decode(r.value, { stream: true }), false); }
+    feed('', true);
+  } else feed(await res.text(), true);
+  if (!full) throw new Error(block ? 'Gemini ne jawab block kiya (' + block + ')' : 'Khaali jawab aaya, dobara try karo');
+  return full;
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-// Busy or flaky server: retry the chosen model once, then fall back to the lighter model.
-async function askGemini() {
-  const main = (S.settings.model || 'gemini-flash-latest').trim();
-  const plan = [main, main, 'gemini-flash-lite-latest'];
-  let last;
+// Busy or flaky server: retry once, then switch to the other model. Never retries after text started.
+async function askGemini(onText) {
+  const main = (S.settings.model || 'gemini-flash-lite-latest').trim();
+  const alt = main.indexOf('lite') >= 0 ? 'gemini-flash-latest' : 'gemini-flash-lite-latest';
+  const plan = [main, main, alt];
+  let last, got = false;
+  const cb = (t) => { got = true; if (onText) onText(t); };
   for (let i = 0; i < plan.length; i++) {
-    try { return await askGeminiOnce(plan[i]); }
+    try { return await askGeminiOnce(plan[i], cb); }
     catch (e) {
       last = e;
-      const retry = e && (e.status === 500 || e.status === 503 || e.status === 504 || e.status === 429 || e instanceof TypeError);
+      const retry = !got && e && (e.status === 500 || e.status === 503 || e.status === 504 || e.status === 429 || e instanceof TypeError);
       if (!retry || i === plan.length - 1) break;
-      await sleep(i === 0 ? 1500 : 800);
+      await sleep(i === 0 ? 700 : 300);
     }
   }
   throw last;
@@ -411,9 +443,10 @@ async function sendChat(text) {
   if (!S.settings.key) { toast('Pehle Settings mein Gemini API key daalo'); return; }
   S.chat.push({ role: 'user', text });
   ui.busy = true; save(); render(); scrollEnd();
-  try { S.chat.push({ role: 'model', text: await askGemini() }); }
-  catch (e) { S.chat.push({ role: 'err', text: (navigator.onLine === false ? 'Internet nahi hai. Mentor ke liye net chahiye.' : 'Gemini error: ' + (e && e.message ? e.message : e)) }); }
-  S.chat = S.chat.slice(-60); ui.busy = false; save();
+  ui.live = '';
+  try { S.chat.push({ role: 'model', text: await askGemini((t) => { ui.live = t; const el = $('#live'); if (el) { el.className = 'msg model'; el.innerHTML = md(t); } if (ui.tab === 'mentor') scrollEnd(); }) }); }
+  catch (e) { S.chat.push({ role: 'err', text: (navigator.onLine === false ? 'Internet nahi hai. Hanuman se baat ke liye net chahiye.' : 'Gemini error: ' + (e && e.message ? e.message : e)) }); }
+  S.chat = S.chat.slice(-60); ui.busy = false; ui.live = ''; save();
   if (ui.tab === 'mentor') { render(); scrollEnd(); }
 }
 
@@ -432,7 +465,7 @@ function vSettings() {
 }
 
 const VIEWS = { home: vHome, plan: vPlan, focus: vFocus, track: vTrack, mentor: vMentor, settings: vSettings };
-const TITLES = { home: 'Home', plan: 'Plan', focus: 'Focus', track: 'Track', mentor: 'AI Mentor', settings: 'Settings' };
+const TITLES = { home: 'Home', plan: 'Plan', focus: 'Focus', track: 'Track', mentor: 'Hanuman', settings: 'Settings' };
 
 function render(keepScroll) {
   const m = $('#main'); if (!m) return;
@@ -539,8 +572,8 @@ function importData(file) {
       const o = JSON.parse(fr.result);
       if (!o || typeof o !== 'object' || !o.settings || !Array.isArray(o.routine)) throw new Error('bad');
       if (!window.confirm('Current data hat kar backup ka data aayega. Pakka?')) return;
-      const key = S.settings.key, d = defaults();
-      S = Object.assign(d, o); S.settings = Object.assign(d.settings, o.settings); S.settings.key = key; S.focus = Object.assign({ log: [], active: null }, o.focus || {});
+      const key = S.settings.key, d = defaults(), ds = Object.assign({}, d.settings);
+      S = Object.assign(d, o); S.settings = Object.assign(ds, o.settings); S.settings.key = key; S.focus = Object.assign({ log: [], active: null }, o.focus || {}); migrateRoutine();
       saveNow(); applyTheme(); render(); toast('Backup restore ho gaya');
     } catch (e) { toast('Ye valid backup file nahi hai'); }
   };
@@ -558,6 +591,8 @@ const ACT = {
   mnav(el) { const [y, m] = ui.month.split('-').map(Number), d = new Date(y, m - 1 + (+el.dataset.v), 1); ui.month = d.getFullYear() + '-' + pad(d.getMonth() + 1); render(); },
   gotoDay(el) { ui.date = el.dataset.d; ui.plan = 'daily'; render(false); window.scrollTo(0, 0); },
   editr() { ui.editR = !ui.editR; render(); },
+  aiimsRoutine() { if (window.confirm('Current routine hat kar naya AIIMS routine lagayein?')) { S.routine = D.routine.map((r) => Object.assign({ id: uid() }, r)); S.routineV = 2; save(); render(); toast('Naya routine lag gaya'); } },
+  routineSkip() { S.routineV = 2; save(); render(); },
   editl() { ui.editL = !ui.editL; render(); },
   rdel(el) { S.routine = S.routine.filter((r) => r.id !== el.dataset.id); save(); render(); },
   ldel(el) { S.lectures = S.lectures.filter((r) => r.id !== el.dataset.id); save(); render(); },
