@@ -368,8 +368,8 @@ function mentorContext() {
     '- Last mocks (/720): ' + (ms.slice(-4).map((m) => mockTotal(m)).join(', ') || 'abhi koi nahi') + '.\n' +
     '- Mocks mein baar baar galti: ' + weak + '.';
 }
-async function askGemini() {
-  const key = S.settings.key.trim(), model = (S.settings.model || 'gemini-flash-latest').trim();
+async function askGeminiOnce(model) {
+  const key = S.settings.key.trim();
   let hist = S.chat.filter((m) => m.role === 'user' || m.role === 'model').slice(-14);
   while (hist.length && hist[0].role !== 'user') hist.shift();
   const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', {
@@ -382,10 +382,27 @@ async function askGemini() {
     })
   });
   const j = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((j.error && j.error.message) || ('HTTP ' + res.status));
+  if (!res.ok) { const er = new Error((j.error && j.error.message) || ('HTTP ' + res.status)); er.status = res.status; throw er; }
   const t = ((j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts) || []).map((p) => p.text || '').join('');
   if (!t) throw new Error(j.promptFeedback && j.promptFeedback.blockReason ? 'Gemini ne jawab block kiya (' + j.promptFeedback.blockReason + ')' : 'Khaali jawab aaya, dobara try karo');
   return t;
+}
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// Busy or flaky server: retry the chosen model once, then fall back to the lighter model.
+async function askGemini() {
+  const main = (S.settings.model || 'gemini-flash-latest').trim();
+  const plan = [main, main, 'gemini-flash-lite-latest'];
+  let last;
+  for (let i = 0; i < plan.length; i++) {
+    try { return await askGeminiOnce(plan[i]); }
+    catch (e) {
+      last = e;
+      const retry = e && (e.status === 500 || e.status === 503 || e.status === 504 || e.status === 429 || e instanceof TypeError);
+      if (!retry || i === plan.length - 1) break;
+      await sleep(i === 0 ? 1500 : 800);
+    }
+  }
+  throw last;
 }
 function scrollEnd() { requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight)); }
 async function sendChat(text) {
@@ -656,6 +673,6 @@ function boot() {
   setInterval(checkReminders, 20000); checkReminders();
 }
 
-window.__NS = { S: () => S, setS: (x) => { S = x; }, ui, VIEWS, load, defaults, mockTotal, FORMS, ACT, itemsFor, md };
+window.__NS = { askGemini, S: () => S, setS: (x) => { S = x; }, ui, VIEWS, load, defaults, mockTotal, FORMS, ACT, itemsFor, md };
 if (!window.__TEST) boot();
 })();

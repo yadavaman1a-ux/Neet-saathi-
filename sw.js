@@ -1,6 +1,6 @@
 /* NEET Saathi service worker: offline app shell + notification click handling.
    Bump CACHE when you change any file so phones pick up the update. */
-const CACHE = 'neet-saathi-v1';
+const CACHE = 'neet-saathi-v2';
 const ASSETS = [
   './', 'index.html', 'app.css', 'data.js', 'app.js',
   'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'
