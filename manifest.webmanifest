@@ -1,0 +1,21 @@
+{
+  "name": "NEET Saathi",
+  "short_name": "NEET Saathi",
+  "description": "NEET 2027 ki preparation ka poora saathi: routine, Yakeen timetable, focus mode, tracker, mocks aur AI mentor.",
+  "lang": "hi-IN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A1119",
+  "theme_color": "#0B8F83",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Focus session", "url": "./index.html#focus" },
+    { "name": "AI Mentor", "url": "./index.html#mentor" }
+  ]
+}
