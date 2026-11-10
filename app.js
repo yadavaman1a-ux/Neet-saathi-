@@ -389,7 +389,7 @@ async function askGeminiOnce(model, onText) {
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: mentorContext() }] },
       contents: hist.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
-      generationConfig: { temperature: 0.7, maxOutputTokens: 900 }
+      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
     })
   });
   if (!res.ok) {
